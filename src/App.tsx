@@ -84,20 +84,25 @@ function App() {
 
   const loadModels = useCallback(async () => {
     const MODEL_URL = process.env.PUBLIC_URL + "/models";
-
-    Promise.all([
-      faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
-      faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
-      faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL),
-      faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL),
-      faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL),
-    ])
-      .then((val) => {
-        setModelsLoaded(true);
-      })
-      .catch((err) => {
-        console.log("err: ", err);
+    try {
+      await Promise.all([
+        faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+        faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
+        faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL),
+        faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL),
+        faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL),
+      ]);
+      setModelsLoaded(true);
+      let output = JSON.stringify({
+        type: "MODEL_LOADED",
+        isSuccess: true,
+        isError: false,
+        result: null,
       });
+      sendMessage(output);
+    } catch (error) {
+      console.log("loadModelsError: ", error);
+    }
   }, []);
 
   useEffect(() => {
@@ -191,9 +196,6 @@ function App() {
   };
 
   const getDetections = async (arg: string | string[]) => {
-    if (!modelsLoaded) {
-      await loadModels();
-    }
     let multiple = false;
     let queryImages: string[] = [];
     if (arg && Array.isArray(arg)) {
