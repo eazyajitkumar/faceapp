@@ -1,7 +1,6 @@
 import * as faceapi from "face-api.js";
 import React, { useCallback, useEffect, useState } from "react";
-import Webcam from "react-webcam";
-// import FaceRecognition from "./FaceRecognition.tsx";
+// import Webcam from "react-webcam";
 import "./App.css";
 
 type ModalType = "TRAINING_IMAGE" | "QUERY_IMAGE";
@@ -93,13 +92,13 @@ function App() {
         faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL),
       ]);
       setModelsLoaded(true);
-      let output = JSON.stringify({
+      /* let output = JSON.stringify({
         type: "MODEL_LOADED",
         isSuccess: true,
         isError: false,
         result: null,
       });
-      sendMessage(output);
+      sendMessage(output); */
     } catch (error) {
       console.log("loadModelsError: ", error);
     }
@@ -208,11 +207,15 @@ function App() {
     let detections = [];
     for (let i = 0; i < queryImages.length; i++) {
       const query = queryImages[i];
+      sendMessage("fetchImage started");
       const image = await faceapi.fetchImage(query);
+      sendMessage("fetchImage ended");
+      sendMessage("detection started");
       const detection = await faceapi
-        .detectSingleFace(image)
+        .detectSingleFace(image, new faceapi.TinyFaceDetectorOptions())
         .withFaceLandmarks()
         .withFaceDescriptor();
+      sendMessage("detection ended");
       if (detection) {
         detections.push(detection);
       }
@@ -253,6 +256,28 @@ function App() {
     }
   };
 
+  const prepareFaceDetector = useCallback(() => {
+    let base_image = new Image();
+    base_image.src = process.env.PUBLIC_URL + "/assets/startFaceDetect.jpg";
+    base_image.onload = function () {
+      const useTinyModel = true;
+      const fullFaceDescription = faceapi
+        .detectSingleFace(base_image, new faceapi.TinyFaceDetectorOptions())
+        .withFaceLandmarks(useTinyModel)
+        .withFaceDescriptor()
+        .run()
+        .then((res) => {
+          let output = JSON.stringify({
+            type: "MODEL_LOADED",
+            isSuccess: true,
+            isError: false,
+            result: null,
+          });
+          sendMessage(output);
+        });
+    };
+  }, []);
+
   useEffect(() => {
     if (isMatching) {
       loaderDialogRef.current?.showModal();
@@ -261,9 +286,15 @@ function App() {
     }
   }, [isMatching]);
 
+  useEffect(() => {
+    if (modelsLoaded) {
+      prepareFaceDetector();
+    }
+  }, [prepareFaceDetector, modelsLoaded]);
+
   return (
     <div>
-      <div className="main-container">
+      {/* <div className="main-container">
         <div className="card-container">
           <div className="training-card card">
             {trainingImages.map((trainingImage, index) => (
@@ -318,7 +349,7 @@ function App() {
       </dialog>
       <dialog ref={loaderDialogRef} className="loader-dialog">
         <p>Matching...</p>
-      </dialog>
+      </dialog> */}
     </div>
   );
 }
