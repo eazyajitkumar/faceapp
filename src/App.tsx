@@ -294,6 +294,7 @@ function App() {
 
   return (
     <div>
+      <h1>Welcome to Face Recognizer app by Eazy ERP Technologies</h1>
       {/* <div className="main-container">
         <div className="card-container">
           <div className="training-card card">
