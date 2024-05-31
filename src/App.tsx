@@ -5,6 +5,27 @@ import "./App.css";
 
 type ModalType = "TRAINING_IMAGE" | "QUERY_IMAGE";
 
+let getBrowser = () => {
+  const userAgent = window.navigator.userAgent;
+  let browserName = "Unknown";
+  if (userAgent.includes("Firefox")) {
+    browserName = "Firefox";
+  } else if (userAgent.includes("SamsungBrowser")) {
+    browserName = "Samsung Internet";
+  } else if (userAgent.includes("Opera") || userAgent.includes("OPR")) {
+    browserName = "Opera";
+  } else if (userAgent.includes("Trident")) {
+    browserName = "Internet Explorer";
+  } else if (userAgent.includes("Edge")) {
+    browserName = "Edge";
+  } else if (userAgent.includes("Chrome")) {
+    browserName = "Chrome";
+  } else if (userAgent.includes("Safari")) {
+    browserName = "Safari";
+  }
+  return browserName;
+};
+
 function App() {
   const [result, setResult] = useState<number | undefined>(undefined);
   const [modalType, setModalType] = useState<ModalType | null>(null);
@@ -12,64 +33,91 @@ function App() {
   const [queryImage, setQueryImage] = useState<string>("");
   const [isMatching, setIsMatching] = useState<boolean>(false);
   const [modelsLoaded, setModelsLoaded] = useState<boolean>(false);
+  const [browser, setBrowser] = useState<string>("");
 
   const dialogRef = React.useRef<HTMLDialogElement>();
   const loaderDialogRef = React.useRef<HTMLDialogElement>();
   const webcamRef = React.useRef();
 
-  useEffect(() => {
-    sendMessage("App started");
-    const messageListener = document.addEventListener(
-      "message",
-      async (event) => {
-        console.log("messageListener: ", event?.data);
-        let recievedData = JSON.parse(event?.data);
-        let type = recievedData?.type;
-        if (type === "MATCH_FACE") {
-          let training = recievedData?.trainingImages;
-          let query = recievedData?.queryImage;
-          try {
-            const result = await matchFaces(query, training);
-            let output = JSON.stringify({
-              type: "MATCH_FACE",
-              isSuccess: true,
-              isError: false,
-              result: result,
-            });
-            sendMessage(output);
-          } catch (error) {
-            let output = JSON.stringify({
-              type: "MATCH_FACE",
-              isSuccess: false,
-              isError: true,
-              result: error,
-            });
-            sendMessage(output);
-          }
-        } else if (type === "DETECT_FACE") {
-          let query = recievedData?.queryImage;
-          try {
-            const result = await getDetections(query);
-            let output = JSON.stringify({
-              type: "DETECT_FACE",
-              isSuccess: true,
-              isError: false,
-              result: result,
-            });
-            sendMessage(output);
-          } catch (error) {
-            let output = JSON.stringify({
-              type: "DETECT_FACE",
-              isSuccess: false,
-              isError: true,
-              result: error,
-            });
-            sendMessage(output);
-          }
-        }
+  const handleMassage = async (event) => {
+    console.log("messageListener: ", event?.data);
+    let recievedData = JSON.parse(event?.data);
+    let type = recievedData?.type;
+    if (type === "MATCH_FACE") {
+      let training = recievedData?.trainingImages;
+      let query = recievedData?.queryImage;
+      try {
+        const result = await matchFaces(query, training);
+        let output = JSON.stringify({
+          type: "MATCH_FACE",
+          isSuccess: true,
+          isError: false,
+          result: result,
+        });
+        sendMessage(output);
+      } catch (error) {
+        let output = JSON.stringify({
+          type: "MATCH_FACE",
+          isSuccess: false,
+          isError: true,
+          result: error,
+        });
+        sendMessage(output);
       }
-    );
-    return messageListener;
+    } else if (type === "DETECT_FACE") {
+      let query = recievedData?.queryImage;
+      try {
+        const result = await getDetections(query);
+        let output = JSON.stringify({
+          type: "DETECT_FACE",
+          isSuccess: true,
+          isError: false,
+          result: result,
+        });
+        sendMessage(output);
+      } catch (error) {
+        let output = JSON.stringify({
+          type: "DETECT_FACE",
+          isSuccess: false,
+          isError: true,
+          result: error,
+        });
+        sendMessage(output);
+      }
+    }
+  };
+
+  useEffect(() => {
+    sendMessage("App started on " + getBrowser());
+    // console.log("window.addEventListener", window.addEventListener)
+    try {
+      let messageListener = window.addEventListener(
+        "message",
+        handleMassage,
+        false
+      );
+      return messageListener;
+    } catch (error) {
+      sendMessage("window.addEventListener Error " + error);
+    }
+  }, []);
+
+  useEffect(() => {
+    sendMessage("App started userAgent: " + window.navigator.userAgent);
+    try {
+      let messageListener = document.addEventListener(
+        "message",
+        handleMassage,
+        false
+      );
+      return messageListener;
+    } catch (error) {
+      sendMessage("document.addEventListener Error " + error);
+    }
+  }, []);
+
+  useEffect(() => {
+    setBrowser(getBrowser());
   }, []);
 
   const sendMessage = (msg: string) => {
@@ -295,6 +343,7 @@ function App() {
   return (
     <div>
       <h1>Welcome to Face Recognizer app by Eazy ERP Technologies</h1>
+      <p>Browser: {browser}</p>
       {/* <div className="main-container">
         <div className="card-container">
           <div className="training-card card">
