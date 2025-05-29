@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/eazyajitkumar/faceapp/static/css/main.f7e4a548.css",
+    "main.js": "/eazyajitkumar/faceapp/static/js/main.08830fcc.js",
+    "static/js/787.3bfbc3dd.chunk.js": "/eazyajitkumar/faceapp/static/js/787.3bfbc3dd.chunk.js",
+    "index.html": "/eazyajitkumar/faceapp/index.html",
+    "main.f7e4a548.css.map": "/eazyajitkumar/faceapp/static/css/main.f7e4a548.css.map",
+    "main.08830fcc.js.map": "/eazyajitkumar/faceapp/static/js/main.08830fcc.js.map",
+    "787.3bfbc3dd.chunk.js.map": "/eazyajitkumar/faceapp/static/js/787.3bfbc3dd.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.f7e4a548.css",
+    "static/js/main.08830fcc.js"
+  ]
+}
